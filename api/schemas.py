@@ -131,7 +131,6 @@ class CreditOut(CreditIn):
 
 class OrderOutRel(OrderOutWoId):
     user: UserRead
-    response: ResponseWoIds | None
 
 
 class ResponseOutRel(ResponseOutWoIds):

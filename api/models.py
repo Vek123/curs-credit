@@ -59,6 +59,7 @@ class Order(BaseOrm):
     user: Mapped[User] = relationship(back_populates="orders")
     target: Mapped[str] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(32), default="Отправлена")
+    new: Mapped[bool] = mapped_column(default=True)
     response: Mapped["Response"] = relationship(back_populates="order")
 
 
