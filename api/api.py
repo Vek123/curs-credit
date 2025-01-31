@@ -1,16 +1,6 @@
-from typing import Annotated
+from fastapi import APIRouter
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, update
-from sqlalchemy.orm import joinedload, contains_eager
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError, NoResultFound
-
-from db import get_session
-from models import *
-from users import current_active_user
 from utils import specs_route
-from schemas import *
 from services import *
 
 router = APIRouter()

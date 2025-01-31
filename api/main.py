@@ -1,10 +1,11 @@
 import contextlib
-from typing import AsyncIterator
+from typing import AsyncIterator, Annotated
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 
 from api import router
+from models import User
 from db import db_manager
 from users import current_active_user, fastapi_users
 from schemas import UserRead, UserCreate, UserUpdate
@@ -52,6 +53,15 @@ app.include_router(
     prefix="/api/v1",
     tags=["v1"]
 )
+
+
+### CHECK AUTH
+@app.get("/api/check")
+async def check(
+        user: Annotated[User, Depends(current_active_user)],
+):
+    return
+
 
 
 if __name__ == "__main__":

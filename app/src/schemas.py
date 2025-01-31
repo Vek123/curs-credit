@@ -1,22 +1,15 @@
 import datetime
 import re
-from typing_extensions import Self
+from typing import Self
 
-from datetime import date
-
-from fastapi_users import schemas
-from pydantic import Field, model_validator, BaseModel
+from pydantic import BaseModel, EmailStr, model_validator, Field
 
 
-class APIException(BaseModel):
-    detail: str
-
-
-class BaseUserFields:
+class UserBase(BaseModel):
     first_name: str = Field(max_length=50)
     second_name: str = Field(max_length=50)
     last_name: str = Field(max_length=50)
-    birthday: date
+    birthday: datetime.date
     passport_serial: int = Field(gt=0)
     passport_number: int = Field(gt=0)
     gotten_by: str = Field(max_length=255)
@@ -26,6 +19,7 @@ class BaseUserFields:
     per_month_profit: float = Field(gt=0)
     phone: str = Field(max_length=20)
     family_status: str = Field(max_length=16)
+    email: EmailStr
 
     @model_validator(mode="after")
     def check_passport(self) -> Self:
@@ -62,80 +56,15 @@ class BaseUserFields:
         return self
 
 
-class UserRead(schemas.BaseUser[int], BaseUserFields):
+class UserCreds(BaseModel):
+    username: EmailStr
+    password: str
+
+
+class UserIn(UserBase, UserCreds):
+    ...
+
+
+class UserOut(UserBase):
+    id: int
     is_spec: bool
-
-
-class UserCreate(schemas.BaseUserCreate, BaseUserFields):
-    pass
-
-
-class UserUpdate(schemas.BaseUserUpdate, BaseUserFields):
-    pass
-
-
-class OrderWoIds(BaseModel):
-    credit_size: float = Field(ge=5_000)
-    period: int = Field(ge=3)
-    target: str = Field(max_length=255)
-
-
-class OrderIn(OrderWoIds):
-    user_id: int
-
-
-class OrderOutWoId(OrderWoIds):
-    id: int
-    status: str
-
-
-class OrderOut(OrderIn):
-    id: int
-    status: str
-
-
-class ResponseWoIds(BaseModel):
-    percent: float = Field(ge=0)
-    monthly_pay: float = Field(ge=0)
-
-
-class ResponseIn(ResponseWoIds):
-    order_id: int
-
-
-class ResponseOutWoIds(ResponseWoIds):
-    id: int
-
-
-class ResponseOut(ResponseIn):
-    id: int
-
-
-class CreditWoIds(BaseModel):
-    next_pay_data: date
-    remain_to_pay: float = Field(ge=0)
-    monthly_pay: float = Field(ge=0)
-
-
-class CreditIn(CreditWoIds):
-    user_id: int
-
-
-class CreditOutWoIds(CreditWoIds):
-    id: int
-
-
-class CreditOut(CreditIn):
-    id: int
-
-
-class OrderOutRel(OrderOutWoId):
-    user: UserRead
-
-
-class ResponseOutRel(ResponseOutWoIds):
-    order: OrderOutRel
-
-
-class CreditOutRel(CreditOutWoIds):
-    user: UserRead
