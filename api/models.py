@@ -58,7 +58,7 @@ class Order(BaseOrm):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     user: Mapped[User] = relationship(back_populates="orders")
     target: Mapped[str] = mapped_column(String(255))
-    status: Mapped[str] = mapped_column(default="Отправлена")
+    status: Mapped[str] = mapped_column(String(32), default="Отправлена")
     response: Mapped["Response"] = relationship(back_populates="order")
 
 

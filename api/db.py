@@ -31,7 +31,7 @@ class DatabaseSessionManager:
             url=db_url,
             pool_pre_ping=True,
             connect_args=connect_args,
-            echo=False,     # Make `True` to log SQL in Console
+            echo=True,     # Make `True` to log SQL in Console
         )
         self._sessionmaker = async_sessionmaker(
             bind=self._engine,

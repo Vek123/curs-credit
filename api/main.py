@@ -4,6 +4,7 @@ from typing import AsyncIterator
 import uvicorn
 from fastapi import FastAPI
 
+from api import router
 from db import db_manager
 from users import current_active_user, fastapi_users
 from schemas import UserRead, UserCreate, UserUpdate
@@ -44,6 +45,12 @@ app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
     prefix="/users",
     tags=["users"],
+)
+
+app.include_router(
+    router,
+    prefix="/api/v1",
+    tags=["v1"]
 )
 
 
