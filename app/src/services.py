@@ -53,3 +53,48 @@ class AuthService(object):
         async with get_session() as session:
             async with session.post("auth/jwt/logout"):
                 set_auth_token("")
+
+
+class OrdersService(object):
+    async def create(self, order: OrderIn) -> OrderOutRel | None:
+        async with get_session() as session:
+            async with session.post(
+                    "api/v1/orders",
+                    json=order.model_dump(),
+            ) as response:
+                if response.status == 200:
+                    order_dict = await response.json()
+                    return OrderOutRel.model_validate(order_dict)
+        return None
+
+    async def list(self) -> list[OrderOutRel]:
+        async with get_session() as session:
+            async with session.get("api/v1/orders") as response:
+                if response.status == 200:
+                    orders_list = await response.json()
+                    return [OrderOutRel.model_validate(order) for order in orders_list]
+        return list()
+
+    async def get(self, order_id: int) -> OrderOutRel | None:
+        async with get_session() as session:
+            async with session.get(f"api/v1/orders/{order_id}") as response:
+                if response.status == 200:
+                    order_dict = await response.json()
+                    return OrderOutRel.model_validate(order_dict)
+        return None
+
+    async def patch_order(
+            self,
+            order_id: int,
+            status: str,
+            active: bool = True,
+    ) -> OrderOutRel | None:
+        async with get_session() as session:
+            async with session.post(
+                    f"api/v1/orders/{order_id}",
+                    json={"status": status, "active": active},
+            ) as response:
+                if response.status == 200:
+                    order_dict = await response.json()
+                    return OrderOutRel.model_validate(order_dict)
+        return None

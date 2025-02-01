@@ -7,23 +7,32 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db import get_session
-from users import current_active_user
-from schemas import *
-from models import *
+from schemas import (
+    CreditOut,
+    CreditIn,
+    OrderOutRel,
+    OrderIn,
+    ResponseIn,
+    ResponseOutRel,
+)
+from models import Order, Response, Credit
 
 
 class BaseService(object):
     def __init__(
             self,
             session: Annotated[AsyncSession, Depends(get_session)],
-            # user: Annotated[User, Depends(current_active_user)],
     ):
         self.session = session
 
 
 class OrderService(BaseService):
+    base_query = (
+        select(Order)
+        .options(joinedload(Order.user), joinedload(Order.response))
+    )
+
     async def create(self, order: OrderIn) -> OrderOutRel:
-        # if user.is_spec is False we need to change order.user_id to user.id
         self.session.add(Order(**order.model_dump()))
         try:
             await self.session.commit()
@@ -32,32 +41,32 @@ class OrderService(BaseService):
                 404, f"User with id {order.user_id} not found"
             )
 
-        query = (select(Order)
-                 .options(joinedload(Order.user), joinedload(Order.response))
-                 .where(Order.user_id == order.user_id)
-                 .order_by(Order.id.desc()).limit(1))
+        query = (
+            self.base_query
+            .where(Order.user_id == order.user_id)
+            .order_by(Order.id.desc()).limit(1)
+        )
         order_created = (await self.session.execute(query)).scalar_one()
         order_created_pydantic = OrderOutRel.model_validate(
             order_created, from_attributes=True
         )
         return order_created_pydantic
 
-    async def list(self) -> list[OrderOutRel]:
-        # if user is not Spec we need to return all orders where Order.user_id == user.id
-        query = select(Order).options(
-            joinedload(Order.user),
-            joinedload(Order.response),
-        )
+    async def list(self, user_id: int | None = None) -> list[OrderOutRel]:
+        if user_id is None:
+            query = self.base_query
+        else:
+            query = self.base_query.where(Order.id == user_id)
         orders = (await self.session.execute(query)).scalars().all()
         orders_pydantic_list = [
             OrderOutRel.model_validate(order, from_attributes=True) for order in orders
         ]
         return orders_pydantic_list
 
-    async def get(self, order_id: int) -> OrderOutRel:
-        query = select(Order).options(joinedload(Order.user),
-                                      joinedload(Order.response)).where(
-            Order.id == order_id)
+    async def get(self, order_id: int, user_id: int | None = None) -> OrderOutRel:
+        query = self.base_query.where(Order.id == order_id)
+        if user_id is not None:
+            query = query.where(Order.user_id == user_id)
         try:
             order = (await self.session.execute(query)).scalar_one()
         except NoResultFound:
@@ -67,7 +76,6 @@ class OrderService(BaseService):
         return order_pydantic
 
     async def change_status(self, order_id: int, status: str, new: bool) -> OrderOutRel:
-        # and if Order.user_id == user.id if user is not Spec
         stmt = update(Order).where(Order.id == order_id).values(
             status=status, new=new
         )
@@ -89,13 +97,14 @@ class OrderService(BaseService):
 
 
 class ResponseService(BaseService):
-    base_query = (select(Response)
-                  .join(Response.order)
-                  .join(Order.user)
-                  .options(contains_eager(Response.order, Order.user)))
+    base_query = (
+        select(Response)
+        .join(Response.order)
+        .join(Order.user)
+        .options(contains_eager(Response.order, Order.user))
+    )
 
     async def create(self, response: ResponseIn) -> ResponseOutRel:
-        # Need to select only those responses where Order.user_id == user.id if User is not Spec
         query = select(Response).where(Response.order_id == response.order_id)
         try:
             (await self.session.execute(query)).scalar_one()
@@ -115,14 +124,17 @@ class ResponseService(BaseService):
 
         query = self.base_query.where(Response.order_id == response.order_id)
         created_response = (await self.session.execute(query)).scalar_one()
-        created_response_pydantic = ResponseOutRel.model_validate(created_response,
-                                                                  from_attributes=True)
+        created_response_pydantic = ResponseOutRel.model_validate(
+            created_response,
+            from_attributes=True,
+        )
 
         return created_response_pydantic
 
-    async def list(self) -> list[ResponseOutRel]:
-        # Need to check if User is Spec we can get all Responses either only where self.user.id == response.order.user.id
+    async def list(self, user_id: int | None = None) -> list[ResponseOutRel]:
         query = self.base_query
+        if user_id is not None:
+            query = query.where(Response.order.user_id == user_id)
         responses = (await self.session.execute(query)).scalars().all()
         responses_pydantic = [ResponseOutRel.model_validate(resp) for resp in responses]
 
@@ -138,10 +150,12 @@ class CreditService(BaseService):
             await self.session.commit()
         except IntegrityError:
             raise HTTPException(404, f"User with id {credit.user_id} not found")
-        query = (self.base_query
-                 .where(Credit.user_id == credit.user_id)
-                 .order_by(Credit.id.desc())
-                 .limit(1))
+        query = (
+            self.base_query
+            .where(Credit.user_id == credit.user_id)
+            .order_by(Credit.id.desc())
+            .limit(1)
+        )
         created_credit = (await self.session.execute(query)).scalar_one()
         created_credit_pydantic = CreditOut.model_validate(
             created_credit, from_attributes=True
@@ -149,16 +163,19 @@ class CreditService(BaseService):
 
         return created_credit_pydantic
 
-    async def list(self) -> list[CreditOut]:
-        # Need to get only Specs and Users who own these
-        credits = (await self.session.execute(self.base_query)).scalars().all()
+    async def list(self, user_id: int | None = None) -> list[CreditOut]:
+        query = self.base_query
+        if user_id is not None:
+            query = query.where(Credit.user_id == user_id)
+        credits = (await self.session.execute(query)).scalars().all()
         credits_pydantic = [CreditOut.model_validate(cr) for cr in credits]
 
         return credits_pydantic
 
-    async def get(self, credit_id: int) -> CreditOut:
-        # Need to get only Specs and Users who own these
+    async def get(self, credit_id: int, user_id: int | None = None) -> CreditOut:
         query = self.base_query.where(Credit.id == credit_id)
+        if user_id is not None:
+            query = query.where(Credit.user_id == user_id)
         try:
             credit = (await self.session.execute(query)).scalar_one()
         except NoResultFound:

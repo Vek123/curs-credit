@@ -78,3 +78,27 @@ class UserIn(UserBase):
 class UserOut(UserBase):
     id: int
     is_spec: bool
+
+
+class OrderWoIds(BaseModel):
+    credit_size: float = Field(ge=5_000)
+    period: int = Field(ge=3)
+    target: str = Field(max_length=255)
+
+
+class OrderIn(OrderWoIds):
+    user_id: int
+
+
+class OrderOutWoId(OrderWoIds):
+    id: int
+    status: str
+
+
+class OrderOut(OrderIn):
+    id: int
+    status: str
+
+
+class OrderOutRel(OrderOutWoId):
+    user: UserOut

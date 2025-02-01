@@ -9,6 +9,9 @@ class Services(containers.DeclarativeContainer):
     auth_service = providers.Factory(
         AuthService,
     )
+    orders_service = providers.Factory(
+        OrdersService,
+    )
 
 
 class Application(containers.DeclarativeContainer):
