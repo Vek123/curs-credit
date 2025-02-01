@@ -1,8 +1,8 @@
 import datetime
 import re
-from typing import Self
+from typing import Self, Any
 
-from pydantic import BaseModel, EmailStr, model_validator, Field
+from pydantic import BaseModel, EmailStr, model_validator, Field, field_serializer
 
 
 class UserBase(BaseModel):
@@ -55,14 +55,24 @@ class UserBase(BaseModel):
             raise ValueError("ИНН введён некорректно")
         return self
 
+    @staticmethod
+    def str_to_field(field: str, value: str) -> Any:
+        if field == "birthday":
+            return datetime.datetime.strptime(value, "%d.%m.%Y")
+        elif field in {"passport_serial", "passport_number"}:
+            return int(value)
+        elif field == "per_month_profit":
+            return float(value)
+        return value
+
 
 class UserCreds(BaseModel):
     username: EmailStr
     password: str
 
 
-class UserIn(UserBase, UserCreds):
-    ...
+class UserIn(UserBase):
+    password: str
 
 
 class UserOut(UserBase):

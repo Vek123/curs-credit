@@ -4,17 +4,19 @@ from flet_route import path, Routing
 from deps.containers import Application
 from views.login import LoginView
 from views.home import HomeView
+from views.register import RegisterView
 
 
 APP_ROUTES = [
     path("/", True, HomeView().view),
     path("/login", True, LoginView().view),
+    path("/register", True, RegisterView().view),
 ]
 
 
 def main(page: ft.Page):
     page.title = "Credit Bank"
-    page.window.height = 600
+    page.window.height = 650
     page.window.width = 800
 
     Routing(page=page, app_routes=APP_ROUTES, async_is=True)

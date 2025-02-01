@@ -17,15 +17,24 @@ class AuthService(object):
                     return True
                 return False
 
-    async def register(self, user: UserIn) -> bool:
+    async def register(self, user: UserIn) -> bool | str:
         async with get_session() as session:
+            user_dict = user.model_dump()
+            user_dict["birthday"] = user_dict["birthday"].strftime("%Y-%d-%m")
             async with session.post(
-                    "auth/jwt/register/", data=user.model_dump()
+                    "auth/register/", json=user_dict,
             ) as response:
-                print(await response.json())
                 if response.status == 201:
                     return True
-                return False
+                error = (await response.json()).get(
+                    "detail",
+                    "Возникла ошибка при регистрации",
+                )
+                if error == "REGISTER_USER_ALREADY_EXISTS":
+                    return "Такой пользователь уже существует"
+                elif isinstance(error, dict) and error.get("code", "") == "REGISTER_INVALID_PASSWORD":
+                    return "Длина пароля должна быть не менее 3 символов"
+                return error
 
     async def login(self, creds: UserCreds) -> bool:
         async with get_session() as session:

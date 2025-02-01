@@ -40,6 +40,7 @@ class LoginView(object):
                     controls=[
                         ft.Text("Авторизация", size=28),
                         ft.Column(
+                            width=250,
                             controls=[
                                 email,
                                 password,
