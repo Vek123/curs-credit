@@ -5,6 +5,7 @@ import uvicorn
 from fastapi import FastAPI, Depends
 
 from api import router
+from utils import specs_route
 from models import User
 from db import db_manager
 from users import current_active_user, fastapi_users
@@ -62,6 +63,14 @@ async def check(
 ):
     return
 
+
+### CHECK SPEC
+@app.get("/api/check-spec")
+@specs_route
+async def check(
+        user: Annotated[User, Depends(current_active_user)],
+):
+    return
 
 
 if __name__ == "__main__":

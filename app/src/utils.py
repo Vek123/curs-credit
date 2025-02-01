@@ -1,4 +1,5 @@
 import contextlib
+import datetime
 import json
 from typing import Awaitable
 
@@ -28,16 +29,19 @@ def set_auth_token(token: str) -> None:
         file.write(token)
 
 
-def get_local_user() -> UserOut | None:
-    with open(settings.project_root / "user.json", "r") as file:
-        user_dict = json.load(file)
-        if user_dict:
-            return UserOut.model_validate(user_dict)
-
-
-def set_local_user(user: UserOut | None) -> None:
-    with open(settings.project_root / "user.json", "w") as file:
-        if user:
-            file.write(json.dumps(user.model_dump()))
-        else:
-            file.write("")
+# def get_local_user() -> UserOut | None:
+#     with open(settings.project_root / "user.json", "r") as file:
+#         user_dict = json.load(file)
+#         user_dict["birthday"] = datetime.datetime.fromisoformat(user_dict["birthday"])
+#         if user_dict:
+#             return UserOut.model_validate(user_dict)
+#
+#
+# def set_local_user(user: UserOut | None) -> None:
+#     with open(settings.project_root / "user.json", "w") as file:
+#         if user:
+#             user_dict = user.model_dump()
+#             user_dict["birthday"] = user_dict["birthday"].isoformat()
+#             file.write(json.dumps(user_dict))
+#         else:
+#             file.write("")

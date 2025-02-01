@@ -15,16 +15,16 @@ async def create_order(
     return await order_service.create(order)
 
 
-@specs_route
 @router.get("/orders")
+@specs_route
 async def list_orders(
         order_service: Annotated[OrderService, Depends()],
 ) -> list[OrderOutRel]:
     return await order_service.list()
 
 
-@specs_route
 @router.get("/orders/{order_id}", responses={404: {"model": APIException}})
+@specs_route
 async def get_order(
         order_service: Annotated[OrderService, Depends()],
         order_id: int,
@@ -32,8 +32,8 @@ async def get_order(
     return await order_service.get(order_id)
 
 
-@specs_route
 @router.patch("/orders/{order_id}", responses={404: {"model": APIException}})
+@specs_route
 async def patch_order(
         order_service: Annotated[OrderService, Depends()],
         order_id: int,
@@ -44,11 +44,11 @@ async def patch_order(
 
 
 ### RESPONSE
-@specs_route
 @router.post(
     "/responses",
     responses={404: {"model": APIException}, 409: {"model": APIException}}
 )
+@specs_route
 async def create_response(
         order_service: Annotated[OrderService, Depends()],
         response_service: Annotated[ResponseService, Depends()],
@@ -69,8 +69,8 @@ async def list_responses(
     return await response_service.list()
 
 
-@specs_route
 @router.post("/credits")
+@specs_route
 async def create_credit(
         credit_service: Annotated[CreditService, Depends()],
         credit: CreditIn

@@ -19,11 +19,11 @@ class LoginView(object):
         if await auth_service.is_authorized():
             page.go("/")
 
-        async def make_login(event: ft.ControlEvent):
-            user = await auth_service.login(
+        async def make_login(_: ft.ControlEvent):
+            logon = await auth_service.login(
                 UserCreds(username=email.value, password=password.value)
             )
-            if user:
+            if logon:
                 page.go("/")
             else:
                 error.value = "Введённые данные не верные"
@@ -38,13 +38,17 @@ class LoginView(object):
             controls=[
                 ft.Column(
                     controls=[
-                        ft.Text("Авторизация"),
+                        ft.Text("Авторизация", size=28),
                         ft.Column(
                             controls=[
                                 email,
                                 password,
                                 error,
-                                ft.ElevatedButton("Войти", on_click=make_login)
+                                ft.ElevatedButton("Войти", on_click=make_login),
+                                ft.ElevatedButton(
+                                    "Зарегистрироваться",
+                                    on_click=lambda _: page.go("/register"),
+                                )
                             ]
                         )
                     ]
