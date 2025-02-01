@@ -5,11 +5,13 @@ from deps.containers import Application
 from views.login import LoginView
 from views.home import HomeView
 from views.register import RegisterView
+from views.logout import LogoutView
 
 
 APP_ROUTES = [
     path("/", True, HomeView().view),
     path("/login", True, LoginView().view),
+    path("/logout", True, LogoutView().view),
     path("/register", True, RegisterView().view),
 ]
 

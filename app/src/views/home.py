@@ -40,7 +40,14 @@ class HomeView(object):
                             controls=[
                                 ft.Column(
                                     controls=[
-
+                                        ft.Row(
+                                            controls=[
+                                                ft.ElevatedButton(
+                                                    text="Выйти",
+                                                    on_click=lambda _: page.go("/logout"),
+                                                ),
+                                            ]
+                                        )
                                     ]
                                 ),
                                 specs_menu,

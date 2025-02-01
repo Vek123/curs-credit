@@ -48,7 +48,7 @@ class RegisterView(object):
             "family_status": ft.TextField(label="Семейное положение", value="string"),
         }
         user_data_len = len(user_data)
-        error = ft.Text(visible=False, color=ft.Colors.RED, size=24)
+        error = ft.Text(visible=False, color=ft.Colors.RED, size=16)
         return ft.View(
             scroll=ft.ScrollMode.AUTO,
             controls=[
@@ -72,6 +72,10 @@ class RegisterView(object):
                         ft.ElevatedButton(
                             text="Зарегистрироваться",
                             on_click=make_register,
+                        ),
+                        ft.ElevatedButton(
+                            text="На главную",
+                            on_click=lambda _: page.go("/")
                         )
                     ]
                 ),
