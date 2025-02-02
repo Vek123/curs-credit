@@ -1,4 +1,14 @@
 services:
+  app:
+    image: vek123/curs-credit-api
+    container_name: credit_api
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "8000:${APP_PORT}"
+    env_file:
+      - .env
   postgres:
     image: postgres:latest
     container_name: postgres_credit_api

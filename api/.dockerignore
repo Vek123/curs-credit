@@ -1,0 +1,12 @@
+.env
+.env_example
+.dockerignore
+.gitignore
+.venv
+.idea
+.pytest_cache
+docker-compose.yml
+Dockerfile
+database
+README.md
+logs/*.log
