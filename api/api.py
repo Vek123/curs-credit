@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter
 
-from schemas import APIException, CreditOutRel
+from schemas import APIException
 from utils import specs_route
 from users import current_active_user
 from services import *
@@ -55,7 +55,6 @@ async def get_order(
 
 
 @router.patch("/orders/{order_id}", responses={404: {"model": APIException}})
-@specs_route
 async def patch_order(
         order_service: Annotated[OrderService, Depends()],
         user: Annotated[User, Depends(current_active_user)],

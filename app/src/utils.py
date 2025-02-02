@@ -95,7 +95,7 @@ def get_empty_orders_table() -> ft.DataTable:
             ft.DataColumn(label=ft.Text("Цель кредита", text_align=ft.TextAlign.CENTER,
                                         no_wrap=False, width=80, height=50)),
             ft.DataColumn(
-                label=ft.Text("Ответить", text_align=ft.TextAlign.CENTER, no_wrap=False,
+                label=ft.Text("Ответ", text_align=ft.TextAlign.CENTER, no_wrap=False,
                               width=80, height=50)),
         ]
     )
