@@ -15,6 +15,9 @@ class Services(containers.DeclarativeContainer):
     responses_service = providers.Singleton(
         ResponsesService,
     )
+    credits_service = providers.Singleton(
+        CreditsService,
+    )
 
 
 class Application(containers.DeclarativeContainer):

@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import Self, Any
+from typing import Self, Any, Optional
 
 from pydantic import BaseModel, EmailStr, model_validator, Field, field_serializer
 
@@ -104,6 +104,11 @@ class OrderOut(OrderIn):
 
 class OrderOutRel(OrderOutWoId):
     user: UserOut
+    response: Optional["ResponseOut"] = Field(default=None)
+
+
+class OrderOutWithUser(OrderOutWoId):
+    user: UserOut
 
 
 class ResponseWoIds(BaseModel):
@@ -121,7 +126,31 @@ class ResponseOutWoIds(ResponseWoIds):
 
 class ResponseOut(ResponseIn):
     id: int
+    order_id: int
 
 
 class ResponseOutRel(ResponseOutWoIds):
-    order: OrderOutRel
+    order: OrderOutWithUser
+
+
+class CreditWoIds(BaseModel):
+    next_pay_date: datetime.date
+    remain_to_pay: float = Field(ge=0)
+    monthly_pay: float = Field(ge=0)
+    percent: float = Field(ge=0)
+
+
+class CreditIn(CreditWoIds):
+    user_id: int
+
+
+class CreditOutWoIds(CreditWoIds):
+    id: int
+
+
+class CreditOut(CreditIn):
+    id: int
+
+
+class CreditOutRel(CreditOutWoIds):
+    user: UserOut

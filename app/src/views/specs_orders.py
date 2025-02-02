@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from deps.containers import Application
 from schemas import ResponseIn, OrderOutRel
 from services import AuthService, OrdersService, ResponsesService
+from utils import get_user_info_dialog, get_empty_orders_table
 
 
 class SpecsOrdersView(object):
@@ -22,26 +23,7 @@ class SpecsOrdersView(object):
     ) -> ft.View:
         async def show_user_info(event: ft.ControlEvent):
             user = orders[int(event.control.parent.cells[1].content.value)].user
-            user_info = ft.AlertDialog(
-                title=ft.Text(f"{user.first_name} {user.second_name} {user.last_name}"),
-                content=ft.Column(
-                    width=400,
-                    scroll=ft.ScrollMode.ALWAYS,
-                    controls=[
-                        ft.TextField(user.birthday.strftime("%d.%m.%Y"), label="Дата рождения", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(str(user.passport_serial), label="Серия паспорта", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(str(user.passport_number), label="Номер паспорта", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(user.gotten_by, label="Выдан", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(user.inn, label="ИНН", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(user.registration_address, label="Адрес регистрации", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(user.current_job, label="Текущая работа", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(f"{user.per_month_profit:.2f}", label="Ежемесячный доход, руб.", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(user.phone, label="Номер телефона", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(user.family_status, label="Семейный статус", read_only=True, bgcolor=ft.Colors.WHITE),
-                        ft.TextField(user.email, label="Эл. почта", read_only=True, bgcolor=ft.Colors.WHITE),
-                    ]
-                ),
-            )
+            user_info = get_user_info_dialog(user)
             page.open(user_info)
 
         async def send_response(event: ft.ControlEvent):
@@ -54,7 +36,7 @@ class SpecsOrdersView(object):
                 monthly_pay = float(controls[2].value)
                 response = ResponseIn(order_id=order_id, percent=percent, monthly_pay=monthly_pay)
             except (ValidationError, ValueError):
-                error.value = "Заявка заполнена некорректно"
+                error.value = "Ответ заполнен некорректно"
                 error.visible = True
                 page.update()
                 return
@@ -66,6 +48,7 @@ class SpecsOrdersView(object):
                 return
             await orders_service.patch_order(order_id, "Отправлен ответ", "false")
             await update_orders(orders_table)
+            page.update()
             page.close(modal)
 
         async def update_orders(table: ft.DataTable):
@@ -113,13 +96,12 @@ class SpecsOrdersView(object):
                                                    on_click=show_make_response_dialog),
                                      alignment=ft.Alignment(.1, 0))
                     )
-                ]) for order in orders.values()
+                ]) for _, order in orders.items()
             ]
-            page.update()
 
         def show_make_response_dialog(event: ft.ControlEvent):
             order_id = int(event.control.parent.parent.parent.cells[1].content.value)
-            message_dialog = ft.AlertDialog(
+            response_dialog = ft.AlertDialog(
                 title=ft.Text("Ответ на запрос"),
                 content=ft.Column(
                     width=400,
@@ -134,34 +116,13 @@ class SpecsOrdersView(object):
                     ft.TextButton("Ответить", on_click=send_response),
                 ]
             )
-            page.open(message_dialog)
+            page.open(response_dialog)
 
         if not await auth_service.is_spec():
             page.go("/")
 
         orders: dict[int, OrderOutRel] = dict()
-        orders_table = ft.DataTable(
-            data_row_max_height=60,
-            horizontal_margin=5,
-            column_spacing=5,
-            border=ft.Border(
-                ft.BorderSide(1, ft.Colors.BLACK),
-                ft.BorderSide(1, ft.Colors.BLACK),
-                ft.BorderSide(1, ft.Colors.BLACK),
-                ft.BorderSide(1, ft.Colors.BLACK),
-            ),
-            vertical_lines=ft.BorderSide(.5, ft.Colors.GREY),
-            columns=[
-                ft.DataColumn(label=ft.Text("Дата", text_align=ft.TextAlign.CENTER, no_wrap=False, width=70, height=50, offset=ft.Offset(0, 0))),
-                ft.DataColumn(label=ft.Text("Номер", text_align=ft.TextAlign.CENTER, no_wrap=False, width=50, height=50)),
-                ft.DataColumn(label=ft.Text("Размер кредита, руб.", text_align=ft.TextAlign.CENTER, no_wrap=False, width=120, height=50)),
-                ft.DataColumn(label=ft.Text("Срок, мес.", text_align=ft.TextAlign.CENTER, no_wrap=False, width=50, height=50)),
-                ft.DataColumn(label=ft.Text("Статус заявки", text_align=ft.TextAlign.CENTER, no_wrap=False, width=80, height=50)),
-                ft.DataColumn(label=ft.Text("ФИО заёмщика", text_align=ft.TextAlign.CENTER, no_wrap=False, width=80, height=50)),
-                ft.DataColumn(label=ft.Text("Цель кредита", text_align=ft.TextAlign.CENTER, no_wrap=False, width=80, height=50)),
-                ft.DataColumn(label=ft.Text("Ответить", text_align=ft.TextAlign.CENTER, no_wrap=False, width=80, height=50)),
-            ]
-        )
+        orders_table = get_empty_orders_table()
 
         await update_orders(orders_table)
 

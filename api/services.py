@@ -13,7 +13,7 @@ from schemas import (
     OrderOutRel,
     OrderIn,
     ResponseIn,
-    ResponseOutRel,
+    ResponseOutRel, CreditOutRel,
 )
 from models import Order, Response, Credit
 
@@ -154,7 +154,7 @@ class ResponseService(BaseService):
 class CreditService(BaseService):
     base_query = select(Credit).options(joinedload(Credit.user))
 
-    async def create(self, credit: CreditIn) -> CreditOut:
+    async def create(self, credit: CreditIn) -> CreditOutRel:
         self.session.add(Credit(**credit.model_dump()))
         try:
             await self.session.commit()
@@ -167,22 +167,24 @@ class CreditService(BaseService):
             .limit(1)
         )
         created_credit = (await self.session.execute(query)).scalar_one()
-        created_credit_pydantic = CreditOut.model_validate(
+        created_credit_pydantic = CreditOutRel.model_validate(
             created_credit, from_attributes=True
         )
 
         return created_credit_pydantic
 
-    async def list(self, user_id: int | None = None) -> List[CreditOut]:
+    async def list(self, user_id: int | None = None) -> List[CreditOutRel]:
         query = self.base_query
         if user_id is not None:
             query = query.where(Credit.user_id == user_id)
         credits = (await self.session.execute(query)).scalars().all()
-        credits_pydantic = [CreditOut.model_validate(cr) for cr in credits]
+        credits_pydantic = [CreditOutRel.model_validate(
+            cr, from_attributes=True
+        ) for cr in credits]
 
         return credits_pydantic
 
-    async def get(self, credit_id: int, user_id: int | None = None) -> CreditOut:
+    async def get(self, credit_id: int, user_id: int | None = None) -> CreditOutRel:
         query = self.base_query.where(Credit.id == credit_id)
         if user_id is not None:
             query = query.where(Credit.user_id == user_id)
@@ -190,6 +192,6 @@ class CreditService(BaseService):
             credit = (await self.session.execute(query)).scalar_one()
         except NoResultFound:
             raise HTTPException(404, "Credit not found")
-        credit_pydantic = CreditOut.model_validate(credit, from_attributes=True)
+        credit_pydantic = CreditOutRel.model_validate(credit, from_attributes=True)
 
         return credit_pydantic

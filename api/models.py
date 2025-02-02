@@ -77,8 +77,9 @@ class Credit(BaseOrm):
     __tablename__ = "credit"
 
     id: Mapped[int_pk]
-    next_pay_data: Mapped[date]
+    next_pay_date: Mapped[date]
     remain_to_pay: Mapped[float]
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     user: Mapped[User] = relationship(back_populates="credits")
     monthly_pay: Mapped[float]
+    percent: Mapped[float]

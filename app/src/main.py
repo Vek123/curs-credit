@@ -2,11 +2,14 @@ import flet as ft
 from flet_route import path, Routing
 
 from deps.containers import Application
+from views.credits import CreditsView
 from views.login import LoginView
 from views.home import HomeView
 from views.register import RegisterView
 from views.logout import LogoutView
+from views.specs_credits import SpecsCreditsView
 from views.specs_orders import SpecsOrdersView
+from views.orders import OrdersView
 
 
 APP_ROUTES = [
@@ -14,7 +17,10 @@ APP_ROUTES = [
     path("/login", True, LoginView().view),
     path("/logout", True, LogoutView().view),
     path("/register", True, RegisterView().view),
-    path("/specs/orders", True, SpecsOrdersView().view)
+    path("/specs/orders", True, SpecsOrdersView().view),
+    path("/specs/credits", True, SpecsCreditsView().view),
+    path("/orders", True, OrdersView().view),
+    path("/credits", True, CreditsView().view)
 ]
 
 

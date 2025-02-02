@@ -25,8 +25,10 @@ class HomeView(object):
 
         if is_spec:
             specs_menu = ft.Column(
+                horizontal_alignment=ft.CrossAxisAlignment.END,
                 controls=[
                     ft.ElevatedButton("Заявки", on_click=lambda _: page.go("/specs/orders")),
+                    ft.ElevatedButton("Кредиты", on_click=lambda _: page.go("/specs/credits")),
                 ]
             )
         else:
@@ -38,11 +40,21 @@ class HomeView(object):
                     controls=[
                         ft.Text(value="Главная", size=28),
                         ft.Row(
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            vertical_alignment=ft.CrossAxisAlignment.START,
                             controls=[
                                 ft.Column(
                                     controls=[
                                         ft.Row(
                                             controls=[
+                                                ft.ElevatedButton(
+                                                    text="Мои заявки",
+                                                    on_click=lambda _: page.go("/orders"),
+                                                ),
+                                                ft.ElevatedButton(
+                                                    text="Мои кредиты",
+                                                    on_click=lambda _: page.go("/credits"),
+                                                ),
                                                 ft.ElevatedButton(
                                                     text="Выйти",
                                                     on_click=lambda _: page.go("/logout"),

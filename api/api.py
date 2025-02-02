@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter
 
-from schemas import APIException
+from schemas import APIException, CreditOutRel
 from utils import specs_route
 from users import current_active_user
 from services import *
@@ -12,14 +12,14 @@ router = APIRouter()
 
 
 ### ORDER
-@router.post("/orders", responses={404: {"model": APIException}})
+@router.post("/orders", responses={404: {"model": APIException}, 409: {"model": APIException}})
 async def create_order(
         order_service: Annotated[OrderService, Depends()],
         user: Annotated[User, Depends(current_active_user)],
         order: OrderIn,
 ) -> OrderOutRel:
-    if not user.is_spec:
-        order.user_id = user.id
+    if not user.is_spec and order.user_id != user.id:
+        raise HTTPException(409)
     return await order_service.create(order)
 
 
@@ -27,11 +27,15 @@ async def create_order(
 async def list_orders(
         order_service: Annotated[OrderService, Depends()],
         user: Annotated[User, Depends(current_active_user)],
-        new: Optional[bool],
+        new: Optional[bool] = None,
+        user_id: Optional[int] = None,
+        personal: Optional[bool] = None,
 ) -> list[OrderOutRel]:
     current_user_id = None
-    if not user.is_spec:
+    if not user.is_spec or personal is not None:
         current_user_id = user.id
+    elif user_id is not None:
+        current_user_id = user_id
     if new is None:
         return await order_service.list(current_user_id)
     else:
@@ -89,13 +93,15 @@ async def list_responses(
     return await response_service.list(current_user)
 
 
-@router.post("/credits")
-@specs_route
+### CREDITS
+@router.post("/credits", responses={409: {"models": APIException}})
 async def create_credit(
         user: Annotated[User, Depends(current_active_user)],
         credit_service: Annotated[CreditService, Depends()],
-        credit: CreditIn
-) -> CreditOut:
+        credit: CreditIn,
+) -> CreditOutRel:
+    if user.id != credit.user_id:
+        raise HTTPException(401)
     return await credit_service.create(credit)
 
 
@@ -103,7 +109,7 @@ async def create_credit(
 async def list_credits(
         credit_service: Annotated[CreditService, Depends()],
         user: Annotated[User, Depends(current_active_user)],
-) -> list[CreditOut]:
+) -> list[CreditOutRel]:
     current_user = None
     if not user.is_spec:
         current_user = user.id
@@ -115,8 +121,12 @@ async def get_credit(
         credit_service: Annotated[CreditService, Depends()],
         user: Annotated[User, Depends(current_active_user)],
         credit_id: int,
-) -> CreditOut:
+        user_id: Optional[int] = None,
+        personal: Optional[bool] = None,
+) -> CreditOutRel:
     current_user = None
-    if not user.is_spec:
+    if not user.is_spec or personal:
         current_user = user.id
+    elif user_id is not None:
+        current_user = user_id
     return await credit_service.get(credit_id, current_user)

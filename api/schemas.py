@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing_extensions import Self
+from typing_extensions import Self, Optional
 
 from fastapi_users import schemas
 from pydantic import Field, model_validator, BaseModel
@@ -109,12 +109,14 @@ class ResponseOutWoIds(ResponseWoIds):
 
 class ResponseOut(ResponseIn):
     id: int
+    order_id: int
 
 
 class CreditWoIds(BaseModel):
-    next_pay_data: datetime.date
+    next_pay_date: datetime.date
     remain_to_pay: float = Field(ge=0)
     monthly_pay: float = Field(ge=0)
+    percent: float = Field(ge=0)
 
 
 class CreditIn(CreditWoIds):
@@ -131,10 +133,15 @@ class CreditOut(CreditIn):
 
 class OrderOutRel(OrderOutWoId):
     user: UserRead
+    response: Optional[ResponseOut] = Field(default=None)
+
+
+class OrderOutWithUser(OrderOutWoId):
+    user: UserRead
 
 
 class ResponseOutRel(ResponseOutWoIds):
-    order: OrderOutRel
+    order: OrderOutWithUser
 
 
 class CreditOutRel(CreditOutWoIds):
