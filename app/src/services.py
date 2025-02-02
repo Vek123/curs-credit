@@ -105,7 +105,7 @@ class OrdersService(object):
         async with get_session() as session:
             async with session.patch(
                     f"api/v1/orders/{order_id}?status={status}&new={new}",
-            ) as response:)
+            ) as response:
                 if response.status == 200:
                     order_dict = await response.json()
                     return OrderOutRel.model_validate(order_dict)
