@@ -175,6 +175,8 @@ class SpecsOrdersView(object):
                             vertical_alignment=ft.CrossAxisAlignment.START,
                             controls=[
                                 ft.Column(
+                                    scroll=ft.ScrollMode.AUTO,
+                                    height=500,
                                     controls=[
                                         orders_table,
                                     ]
