@@ -29,7 +29,6 @@ target_metadata = BaseOrm.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-print(settings.db_url)
 config.set_main_option("sqlalchemy.url", settings.db_url)
 
 

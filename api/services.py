@@ -56,7 +56,7 @@ class OrderService(BaseService):
         if user_id is None:
             query = self.base_query
         else:
-            query = self.base_query.where(Order.id == user_id)
+            query = self.base_query.where(Order.user_id == user_id)
         orders = (await self.session.execute(query)).scalars().all()
         orders_pydantic_list = [
             OrderOutRel.model_validate(order, from_attributes=True) for order in orders
