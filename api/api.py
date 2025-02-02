@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter
 
 from schemas import APIException
@@ -25,11 +27,15 @@ async def create_order(
 async def list_orders(
         order_service: Annotated[OrderService, Depends()],
         user: Annotated[User, Depends(current_active_user)],
+        new: Optional[bool],
 ) -> list[OrderOutRel]:
     current_user_id = None
     if not user.is_spec:
         current_user_id = user.id
-    return await order_service.list(current_user_id)
+    if new is None:
+        return await order_service.list(current_user_id)
+    else:
+        return await order_service.list_new(current_user_id)
 
 
 @router.get("/orders/{order_id}", responses={404: {"model": APIException}})
@@ -51,9 +57,9 @@ async def patch_order(
         user: Annotated[User, Depends(current_active_user)],
         order_id: int,
         status: str,
-        active: bool,
+        new: bool,
 ) -> OrderOutRel:
-    return await order_service.change_status(order_id, status, active)
+    return await order_service.change_status(order_id, status, new)
 
 
 ### RESPONSE
@@ -63,15 +69,11 @@ async def patch_order(
 )
 @specs_route
 async def create_response(
-        order_service: Annotated[OrderService, Depends()],
         response_service: Annotated[ResponseService, Depends()],
         user: Annotated[User, Depends(current_active_user)],
         response: ResponseIn,
 ) -> ResponseOutRel:
     created_response_pydantic = await response_service.create(response)
-    await order_service.change_status(
-        created_response_pydantic.order.id, "Обработан", False
-    )
 
     return created_response_pydantic
 

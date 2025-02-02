@@ -4,7 +4,7 @@ from dependency_injector.wiring import Provide, inject
 from flet_route import Params, Basket
 
 from deps.containers import Application
-from services import AuthService
+from services import AuthService, OrdersService
 
 
 class HomeView(object):
@@ -14,7 +14,8 @@ class HomeView(object):
             page: ft.Page,
             params: Params,
             basket: Basket,
-            auth_service: AuthService = Provide[Application.services.auth_service]
+            auth_service: AuthService = Provide[Application.services.auth_service],
+            orders_service: OrdersService = Provide[Application.services.orders_service],
     ) -> ft.View:
         is_spec = False
         if not await auth_service.is_authorized():
@@ -25,7 +26,7 @@ class HomeView(object):
         if is_spec:
             specs_menu = ft.Column(
                 controls=[
-                    ft.ElevatedButton("Заявки", on_click=lambda _: page.go("/specs-orders")),
+                    ft.ElevatedButton("Заявки", on_click=lambda _: page.go("/specs/orders")),
                 ]
             )
         else:

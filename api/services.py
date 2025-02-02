@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import Depends, HTTPException
 from sqlalchemy import select, update
@@ -52,11 +52,21 @@ class OrderService(BaseService):
         )
         return order_created_pydantic
 
-    async def list(self, user_id: int | None = None) -> list[OrderOutRel]:
+    async def list(self, user_id: int | None = None) -> List[OrderOutRel]:
         if user_id is None:
             query = self.base_query
         else:
             query = self.base_query.where(Order.user_id == user_id)
+        orders = (await self.session.execute(query)).scalars().all()
+        orders_pydantic_list = [
+            OrderOutRel.model_validate(order, from_attributes=True) for order in orders
+        ]
+        return orders_pydantic_list
+
+    async def list_new(self, user_id: int | None = None) -> List[OrderOutRel]:
+        query = self.base_query.where(Order.new == True)
+        if user_id is not None:
+            query = query.where(Order.user_id == user_id)
         orders = (await self.session.execute(query)).scalars().all()
         orders_pydantic_list = [
             OrderOutRel.model_validate(order, from_attributes=True) for order in orders
@@ -131,7 +141,7 @@ class ResponseService(BaseService):
 
         return created_response_pydantic
 
-    async def list(self, user_id: int | None = None) -> list[ResponseOutRel]:
+    async def list(self, user_id: int | None = None) -> List[ResponseOutRel]:
         query = self.base_query
         if user_id is not None:
             query = query.where(Response.order.user_id == user_id)
@@ -163,7 +173,7 @@ class CreditService(BaseService):
 
         return created_credit_pydantic
 
-    async def list(self, user_id: int | None = None) -> list[CreditOut]:
+    async def list(self, user_id: int | None = None) -> List[CreditOut]:
         query = self.base_query
         if user_id is not None:
             query = query.where(Credit.user_id == user_id)

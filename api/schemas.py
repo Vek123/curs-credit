@@ -2,8 +2,6 @@ import datetime
 import re
 from typing_extensions import Self
 
-from datetime import date
-
 from fastapi_users import schemas
 from pydantic import Field, model_validator, BaseModel
 
@@ -16,7 +14,7 @@ class BaseUserFields:
     first_name: str = Field(max_length=50)
     second_name: str = Field(max_length=50)
     last_name: str = Field(max_length=50)
-    birthday: date
+    birthday: datetime.date
     passport_serial: int = Field(gt=0)
     passport_number: int = Field(gt=0)
     gotten_by: str = Field(max_length=255)
@@ -87,11 +85,13 @@ class OrderIn(OrderWoIds):
 class OrderOutWoId(OrderWoIds):
     id: int
     status: str
+    date: datetime.datetime
 
 
 class OrderOut(OrderIn):
     id: int
     status: str
+    date: datetime.datetime
 
 
 class ResponseWoIds(BaseModel):
@@ -112,7 +112,7 @@ class ResponseOut(ResponseIn):
 
 
 class CreditWoIds(BaseModel):
-    next_pay_data: date
+    next_pay_data: datetime.date
     remain_to_pay: float = Field(ge=0)
     monthly_pay: float = Field(ge=0)
 

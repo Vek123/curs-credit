@@ -6,6 +6,7 @@ from views.login import LoginView
 from views.home import HomeView
 from views.register import RegisterView
 from views.logout import LogoutView
+from views.specs_orders import SpecsOrdersView
 
 
 APP_ROUTES = [
@@ -13,13 +14,14 @@ APP_ROUTES = [
     path("/login", True, LoginView().view),
     path("/logout", True, LogoutView().view),
     path("/register", True, RegisterView().view),
+    path("/specs/orders", True, SpecsOrdersView().view)
 ]
 
 
 def main(page: ft.Page):
     page.title = "Credit Bank"
     page.window.height = 650
-    page.window.width = 800
+    page.window.width = 850
 
     Routing(page=page, app_routes=APP_ROUTES, async_is=True)
     page.go("/login")

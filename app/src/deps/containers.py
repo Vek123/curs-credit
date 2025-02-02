@@ -6,11 +6,14 @@ from services import *
 class Services(containers.DeclarativeContainer):
     config = providers.Configuration()
 
-    auth_service = providers.Factory(
+    auth_service = providers.Singleton(
         AuthService,
     )
-    orders_service = providers.Factory(
+    orders_service = providers.Singleton(
         OrdersService,
+    )
+    responses_service = providers.Singleton(
+        ResponsesService,
     )
 
 

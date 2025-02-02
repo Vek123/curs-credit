@@ -1,3 +1,5 @@
+from typing import List
+
 from schemas import *
 from utils import set_auth_token, get_session
 
@@ -20,7 +22,7 @@ class AuthService(object):
     async def register(self, user: UserIn) -> bool | str:
         async with get_session() as session:
             user_dict = user.model_dump()
-            user_dict["birthday"] = user_dict["birthday"].strftime("%Y-%d-%m")
+            user_dict["birthday"] = user_dict["birthday"].strftime("%Y-%m-%d")
             async with session.post(
                     "auth/register/", json=user_dict,
             ) as response:
@@ -67,9 +69,20 @@ class OrdersService(object):
                     return OrderOutRel.model_validate(order_dict)
         return None
 
-    async def list(self) -> list[OrderOutRel]:
+    async def list(self) -> List[OrderOutRel]:
         async with get_session() as session:
             async with session.get("api/v1/orders") as response:
+                if response.status == 200:
+                    orders_list = await response.json()
+                    return [OrderOutRel.model_validate(order) for order in orders_list]
+        return list()
+
+    async def list_new(self) -> List[OrderOutRel]:
+        async with get_session() as session:
+            async with session.get(
+                    "api/v1/orders",
+                    params={"new": "true"},
+            ) as response:
                 if response.status == 200:
                     orders_list = await response.json()
                     return [OrderOutRel.model_validate(order) for order in orders_list]
@@ -87,14 +100,38 @@ class OrdersService(object):
             self,
             order_id: int,
             status: str,
-            active: bool = True,
+            new: str = "true",
     ) -> OrderOutRel | None:
         async with get_session() as session:
-            async with session.post(
-                    f"api/v1/orders/{order_id}",
-                    json={"status": status, "active": active},
-            ) as response:
+            async with session.patch(
+                    f"api/v1/orders/{order_id}?status={status}&new={new}",
+            ) as response:)
                 if response.status == 200:
                     order_dict = await response.json()
                     return OrderOutRel.model_validate(order_dict)
         return None
+
+
+class ResponsesService(object):
+    async def create(self, response: ResponseIn) -> ResponseOutRel | None:
+        async with get_session() as session:
+            async with session.post(
+                "api/v1/responses",
+                json=response.model_dump(),
+            ) as response:
+                print(response)
+                if response.status == 200:
+                    response_dict = await response.json()
+                    return ResponseOutRel.model_validate(response_dict)
+        return None
+
+    async def list(self) -> List[ResponseOutRel]:
+        async with get_session() as session:
+            async with session.get(
+                "api/v1/responses",
+            ) as response:
+                print(response)
+                if response.status == 200:
+                    responses = await response.json()
+                    return [ResponseOutRel.model_validate(resp) for resp in responses]
+            return list()

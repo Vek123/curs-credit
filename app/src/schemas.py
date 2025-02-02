@@ -93,12 +93,35 @@ class OrderIn(OrderWoIds):
 class OrderOutWoId(OrderWoIds):
     id: int
     status: str
+    date: datetime.datetime
 
 
 class OrderOut(OrderIn):
     id: int
     status: str
+    date: datetime.datetime
 
 
 class OrderOutRel(OrderOutWoId):
     user: UserOut
+
+
+class ResponseWoIds(BaseModel):
+    percent: float = Field(ge=0)
+    monthly_pay: float = Field(ge=0)
+
+
+class ResponseIn(ResponseWoIds):
+    order_id: int
+
+
+class ResponseOutWoIds(ResponseWoIds):
+    id: int
+
+
+class ResponseOut(ResponseIn):
+    id: int
+
+
+class ResponseOutRel(ResponseOutWoIds):
+    order: OrderOutRel
